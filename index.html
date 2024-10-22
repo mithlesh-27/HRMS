@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HR Management System</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+
+    <!-- Wrapping the form inside the provided container -->
+    <div id="form-container">
+        <div class="container form-container" id="form-container">
+            <h2 id="form-title">Signup</h2>
+            <div class="form-group">
+                <label for="username">Username:</label>
+                <input type="text" id="username" placeholder="Enter your username" required>
+            </div>
+            <div class="form-group">
+                <label for="password">Password:</label>
+                <input type="password" id="password" placeholder="Enter your password" required>
+            </div>
+            <button onclick="handleForm()">Signup</button>
+            <p id="switch-form">
+                Already have an account? <a href="#" onclick="switchToLogin()">Login here</a>
+            </p>
+        </div>
+    </div>
+    <div class="container" id="main-content">
+        <h2>Welcome to the Main Content!</h2>
+        <p>You have successfully logged in.</p>
+    </div>
+
+    <!-- Main Content -->
+    <header>
+        <h1>HR Management System</h1>
+        <nav>
+            <ul>
+                <li><a href="#" id="dashboard-link">Dashboard</a></li>
+                <li><a href="#" id="employee-link">Employee Management</a></li>
+                <li><a href="#" id="leave-link">Leave Management</a></li>
+                <li><a href="#" id="performance-link">Performance Management</a></li>
+                <li><a href="#" id="payroll-link">Payroll Management</a></li>
+                <li><a href="#" id="file-upload-link">File Upload</a></li> <!-- Added link for file upload -->
+            </ul>
+        </nav>
+    </header>
+    
+    <main id="content">
+        <!-- Feedback Message Display -->
+        <div id="messages" class="message-box"></div> <!-- Message display box -->
+
+        <!-- Dashboard Section -->
+        <section id="dashboard" class="section">
+            <div class="section-content">
+                <h2>Dashboard</h2>
+                <p>Welcome to the HRMS Dashboard. Manage your organization with ease.</p>
+            </div>
+        </section>
+        
+        <!-- Employee Management Section -->
+        <section id="employee-management" class="section hidden">
+            <div class="section-content">
+                <h2>Employee Management</h2>
+                <div class="form-container">
+                    <h3>Add Employee</h3>
+                    <form id="add-employee-form">
+                        <input type="number" id="employeeId" placeholder="Employee ID" required>
+                        <input type="text" id="name" placeholder="Name" required>
+                        <input type="text" id="department" placeholder="Department" required>
+                        <input type="date" id="joinDate" required>
+                        <input type="email" id="email" placeholder="Email" required>
+                        <input type="number" id="salary" placeholder="Salary" required>
+                        <textarea id="leaveDetails" placeholder="Leave Details (if any)"></textarea>
+                        <button type="submit">Add Employee</button>
+                    </form>
+                </div>
+                <div class="view-container">
+                    <h3>View Employee</h3>
+                    <input type="number" id="view-employee-id" placeholder="Enter Employee ID">
+                    <button id="view-employee-btn">Fetch Employee Data</button>
+                    <pre id="employee-info" class="data-display hidden"></pre>
+                </div>
+                <div class="form-container">
+                    <h3>Update Employee</h3>
+                    <form id="update-employee-form">
+                        <input type="number" id="update-employee-id" placeholder="Employee ID" required>
+                        <input type="text" id="update-name" placeholder="Name">
+                        <input type="text" id="update-department" placeholder="Department">
+                        <input type="date" id="update-joinDate">
+                        <input type="email" id="update-email" placeholder="Email">
+                        <input type="number" id="update-salary" placeholder="Salary">
+                        <textarea id="update-leaveDetails" placeholder="Leave Details"></textarea>
+                        <button type="submit">Update Employee</button>
+                    </form>
+                </div>
+                <div class="form-container">
+                    <h3>Delete Employee</h3>
+                    <input type="number" id="delete-employee-id" placeholder="Employee ID">
+                    <button id="delete-employee-btn">Delete Employee</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Leave Management Section -->
+        <section id="leave-management" class="section hidden">
+            <div class="section-content">
+                <h2>Leave Management</h2>
+                <div class="form-container">
+                    <h3>Add/Update Leave</h3>
+                    <form id="update-leave-form">
+                        <input type="number" id="update-leave-id" placeholder="Leave ID" required>
+                        <input type="number" id="update-leave-employee-id" placeholder="Employee ID">
+                        <input type="text" id="update-leaveType" placeholder="Leave Type">
+                        <input type="date" id="update-startDate">
+                        <input type="date" id="update-endDate">
+                        <textarea id="update-reason" placeholder="Reason"></textarea>
+                        <button type="submit">Add/Update Leave</button>
+                    </form>
+                </div>
+                <div class="view-container">
+                    <h3>View Leave</h3>
+                    <input type="number" id="view-leave-id" placeholder="Enter Leave ID / Employee ID">
+                    <button id="view-leave-btn">Fetch Leave Data</button>
+                    <pre id="leave-info" class="data-display hidden"></pre>
+                </div>
+                <div class="form-container">
+                    <h3>Delete Leave</h3>
+                    <input type="number" id="delete-leave-id" placeholder="Leave ID">
+                    <button id="delete-leave-btn">Delete Leave</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Performance Management Section -->
+        <section id="performance-management" class="section hidden">
+            <div class="section-content">
+                <h2>Performance Management</h2>
+                <div class="form-container">
+                    <h3>Add/Update Performance</h3>
+                    <form id="update-performance-form">
+                        <input type="number" id="update-performance-id" placeholder="Performance ID" required>
+                        <input type="number" id="update-performance-employee-id" placeholder="Employee ID">
+                        <input type="date" id="update-reviewDate">
+                        <input type="number" id="update-performanceRating" placeholder="Rating (1-5)">
+                        <textarea id="update-comments" placeholder="Comments"></textarea>
+                        <button type="submit">Add/Update Performance</button>
+                    </form>
+                </div>
+                <div class="view-container">
+                    <h3>View Performance</h3>
+                    <input type="number" id="view-performance-id" placeholder="Enter Performance ID / Employee ID">
+                    <button id="view-performance-btn">Fetch Performance Data</button>
+                    <pre id="performance-info" class="data-display hidden"></pre>
+                </div>
+                <div class="form-container">
+                    <h3>Delete Performance</h3>
+                    <input type="number" id="delete-performance-id" placeholder="Performance ID">
+                    <button id="delete-performance-btn">Delete Performance</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Payroll Management Section -->
+        <section id="payroll-management" class="section hidden">
+            <div class="section-content">
+                <h2>Payroll Management</h2>
+                <div class="form-container">
+                    <h3>Add/Update Payroll</h3>
+                    <form id="update-payroll-form">
+                        <input type="number" id="update-payroll-id" placeholder="Payroll ID" required>
+                        <input type="number" id="update-payroll-employee-id" placeholder="Employee ID">
+                        <input type="month" id="update-salaryMonth">
+                        <input type="number" id="update-amount" placeholder="Amount">
+                        <button type="submit">Add/Update Payroll</button>
+                    </form>
+                </div>
+                <div class="view-container">
+                    <h3>View Payroll</h3>
+                    <input type="number" id="view-payroll-id" placeholder="Enter Payroll ID / Employee ID">
+                    <button id="view-payroll-btn">Fetch Payroll Data</button>
+                    <pre id="payroll-info" class="data-display hidden"></pre>
+                </div>
+                <div class="form-container">
+                    <h3>Delete Payroll</h3>
+                    <input type="number" id="delete-payroll-id" placeholder="Payroll ID">
+                    <button id="delete-payroll-btn">Delete Payroll</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- File Upload Section -->
+        <section id="file-upload" class="section hidden">
+            <div class="section-content">
+                <h2>File Upload</h2>
+                <div class="form-container">
+                    <h3>Upload Files</h3>
+                    <form id="upload-file-form" enctype="multipart/form-data">
+                        <input type="file" id="file-upload" name="file" accept=".jpg,.jpeg,.png,.pdf,.doc,.docx">
+                        <button type="submit">Upload File</button>
+                    </form>
+                </div>
+                <div id="upload-messages" class="message-box"></div> <!-- Message display box for upload feedback -->
+            </div>
+        </section>
+    </main>
+    
+    <button class="logout" onclick="logout()">Logout</button>
+    <script src="app.js"></script>
+</body>
+</html>

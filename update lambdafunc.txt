@@ -1,0 +1,200 @@
+import json
+import boto3
+import os
+from datetime import datetime
+from decimal import Decimal
+
+dynamodb = boto3.resource('dynamodb')
+table = dynamodb.Table(os.environ.get('DYNAMODB_TABLE', 'EmployeeDataNew'))
+
+def lambda_handler(event, context):
+    def decimal_to_int(d):
+        """Helper function to convert Decimal to int."""
+        if isinstance(d, Decimal):
+            return int(d)
+        raise TypeError("Expected Decimal")
+
+    def decimal_default(obj):
+        """Convert Decimal objects to int for JSON serialization."""
+        if isinstance(obj, Decimal):
+            return int(obj)
+        raise TypeError("Type not serializable")
+
+    try:
+        # Determine the HTTP method (GET, POST, DELETE, or PUT)
+        http_method = event.get('httpMethod')
+
+        if http_method == 'POST':
+            # Parse the incoming request body
+            data = json.loads(event.get('body', '{}'))
+
+            # Extract fields from the request body
+            employee_id = data.get('employeeId')
+            name = data.get('name')
+            department = data.get('department')
+            join_date = data.get('joinDate')
+            email = data.get('email')
+            salary = data.get('salary')
+            leave_details = data.get('leaveDetails')  # Ensure the field name matches the form field
+
+            # Validate required fields
+            if not all([employee_id, name, department, join_date, email]):
+                return {
+                    'statusCode': 400,
+                    'body': json.dumps({'message': 'Employee ID, name, department, join date, and email are required.'}),
+                    'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'}
+                }
+
+            # Insert employee data into DynamoDB
+            table.put_item(
+                Item={
+                    'employeeId': int(employee_id),
+                    'name': name,
+                    'department': department,
+                    'joinDate': join_date,
+                    'email': email,
+                    'salary': salary if salary else None,  # Handle optional salary
+                    'leaveDetails': leave_details if leave_details else None,  # Handle optional leaveDetails
+                    'createdAt': datetime.now().isoformat()
+                }
+            )
+
+            # Return a success response
+            return {
+                'statusCode': 200,
+                'body': json.dumps({'message': 'Employee data added successfully!'}),
+                'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'}
+            }
+
+        elif http_method == 'GET':
+            # Handle the case where queryStringParameters might be None
+            query_params = event.get('queryStringParameters') or {}
+
+            # Extract employeeId from query parameters
+            employee_id = query_params.get('employeeId')
+
+            if not employee_id:
+                return {
+                    'statusCode': 400,
+                    'body': json.dumps({'message': 'employeeId is required as a query parameter.'}),
+                    'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'}
+                }
+
+            # Fetch employee data from DynamoDB
+            response = table.get_item(
+                Key={
+                    'employeeId': int(employee_id)
+                }
+            )
+
+            if 'Item' in response:
+                # Convert DynamoDB item to JSON serializable format
+                item = response['Item']
+                item['employeeId'] = decimal_to_int(item.get('employeeId'))
+                return {
+                    'statusCode': 200,
+                    'body': json.dumps(item, default=decimal_default),
+                    'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'}
+                }
+            else:
+                return {
+                    'statusCode': 404,
+                    'body': json.dumps({'message': 'Employee not found.'}),
+                    'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'}
+                }
+
+        elif http_method == 'PUT':
+            # Update existing employee data
+            data = json.loads(event.get('body', '{}'))
+            employee_id = data.get('employeeId')
+
+            if not employee_id:
+                return {
+                    'statusCode': 400,
+                    'body': json.dumps({'message': 'Employee ID is required for updating.'}),
+                    'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'}
+                }
+
+            # Fetch existing employee data
+            existing_item = table.get_item(Key={'employeeId': int(employee_id)}).get('Item')
+            if not existing_item:
+                return {
+                    'statusCode': 404,
+                    'body': json.dumps({'message': 'Employee not found.'}),
+                    'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'}
+                }
+
+            # Prepare update expression
+            update_expression = "SET "
+            expression_attribute_values = {}
+            expression_attribute_names = {}
+
+            for key, value in data.items():
+                if key != 'employeeId':  # Skip the primary key
+                    update_expression += f"#{key} = :{key}, "
+                    expression_attribute_values[f":{key}"] = value
+                    expression_attribute_names[f"#{key}"] = key
+
+            if update_expression.endswith(", "):
+                update_expression = update_expression[:-2]  # Remove trailing comma and space
+
+            if not update_expression:
+                return {
+                    'statusCode': 400,
+                    'body': json.dumps({'message': 'No valid fields provided for update.'}),
+                    'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'}
+                }
+
+            # Update item in DynamoDB
+            table.update_item(
+                Key={'employeeId': int(employee_id)},
+                UpdateExpression=update_expression,
+                ExpressionAttributeValues=expression_attribute_values,
+                ExpressionAttributeNames=expression_attribute_names,
+                ReturnValues="UPDATED_NEW"
+            )
+
+            return {
+                'statusCode': 200,
+                'body': json.dumps({'message': 'Employee data updated successfully!'}),
+                'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'}
+            }
+
+        elif http_method == 'DELETE':
+            # Extract employeeId from query parameters
+            query_params = event.get('queryStringParameters') or {}
+            employee_id = query_params.get('employeeId')
+
+            if not employee_id:
+                return {
+                    'statusCode': 400,
+                    'body': json.dumps({'message': 'employeeId is required as a query parameter.'}),
+                    'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'}
+                }
+
+            # Delete employee data from DynamoDB
+            table.delete_item(
+                Key={'employeeId': int(employee_id)}
+            )
+
+            return {
+                'statusCode': 200,
+                'body': json.dumps({'message': 'Employee data deleted successfully!'}),
+                'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'}
+            }
+
+        else:
+            # Unsupported method
+            return {
+                'statusCode': 405,
+                'body': json.dumps({'message': 'Method Not Allowed'}),
+                'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'}
+            }
+
+    except Exception as e:
+        # Return a general error response
+        return {
+            'statusCode': 500,
+            'body': json.dumps({'message': 'Internal server error.', 'error': str(e)}),
+            'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'}
+        }
